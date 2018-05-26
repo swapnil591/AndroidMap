@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="paddingfromleft">16dp</dimen>
+    <dimen name="paddingfromright">16dp</dimen>
+    <dimen name="paddingfromtop">16dp</dimen>
+    <dimen name="paddingfrombottom">16dp</dimen>
+    <dimen name="edittext_top_margin">20dp</dimen>
+    <dimen name="fab_margin">16dp</dimen>
+</resources>

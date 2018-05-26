@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Fragment.SeachPanelFragment"
+    android:background="#00FFFFFF">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="@dimen/paddingfromleft"
+            android:paddingRight="@dimen/paddingfromright"
+            android:paddingTop="@dimen/paddingfromtop"
+            android:paddingBottom="@dimen/paddingfrombottom"
+            android:orientation="vertical"
+            android:background="#CC3F51B5">
+
+            <EditText
+                android:id="@+id/searchEditText"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:ems="10"
+                android:textColor="@android:color/white"
+                android:inputType="textPersonName"
+                android:textColorHint="#F5F5F5"
+                android:background="#33ffffff"
+                android:paddingLeft="@dimen/paddingfromleft"
+                android:hint="@string/source_place_hint" />
+
+            <EditText
+                android:id="@+id/destinationEditText"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:ems="10"
+                android:background="#33ffffff"
+                android:layout_marginTop="@dimen/edittext_top_margin"
+                android:textColor="#F5F5F5"
+                android:inputType="textPersonName"
+                android:textColorHint="#F5F5F5"
+                android:paddingLeft="@dimen/paddingfromleft"
+                android:hint="@string/detination_place_hint" />
+
+
+        </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|right"
+        android:orientation="vertical">
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/floatingActionButton"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_gravity="bottom|right"
+        android:layout_marginBottom="@dimen/paddingfrombottom"
+        android:layout_marginRight="@dimen/paddingfromright"
+        android:clickable="true"
+        android:src="@android:drawable/ic_menu_mylocation"
+        app:backgroundTint="@android:color/background_light" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/navigationFAB"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:visibility="gone"
+        android:layout_gravity="bottom|right"
+        android:layout_marginBottom="@dimen/paddingfrombottom"
+        android:layout_marginRight="@dimen/paddingfromright"
+        android:clickable="true"
+        android:src="@drawable/navigation"
+        app:backgroundTint="@color/colorPrimary" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/googlemapFAB"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:visibility="gone"
+            android:layout_gravity="bottom|right"
+            android:layout_marginBottom="@dimen/paddingfrombottom"
+            android:layout_marginRight="@dimen/paddingfromright"
+            android:clickable="true"
+            android:src="@drawable/googlemapicon"
+            app:backgroundTint="@android:color/white" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/infoFAB"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:visibility="gone"
+            android:layout_gravity="bottom|right"
+            android:layout_marginBottom="@dimen/paddingfrombottom"
+            android:layout_marginRight="@dimen/paddingfromright"
+            android:clickable="true"
+            android:src="@android:drawable/ic_dialog_info"
+            app:backgroundTint="@color/colorPrimary" />
+
+
+    </LinearLayout>
+</FrameLayout>
