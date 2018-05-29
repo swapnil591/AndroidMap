@@ -13,7 +13,6 @@ import com.example.mobiledevpc.androidmap.Fragment.MapFragment;
 import com.example.mobiledevpc.androidmap.Fragment.SearchPanelFragment;
 import com.example.mobiledevpc.androidmap.Model.ParentRoute;
 import com.example.mobiledevpc.androidmap.Model.Route;
-import com.example.mobiledevpc.androidmap.Interface.OnGetRouteDirectionData;
 import com.example.mobiledevpc.androidmap.R;
 import com.google.android.gms.maps.model.LatLng;
 import io.fabric.sdk.android.Fabric;
@@ -22,8 +21,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements
         SearchPanelFragment.OnSearchPanelListener,
-        MapFragment.OnMapEventListener,
-        OnGetRouteDirectionData {
+        MapFragment.OnMapEventListener{
 
     private SearchPanelFragment searchPanelFragment;
     private MapFragment mapFragment;
@@ -44,8 +42,10 @@ public class MainActivity extends AppCompatActivity implements
         fragmentManager = getSupportFragmentManager();
         fragmentTransaction = fragmentManager.beginTransaction();
         mapFragment = new MapFragment();
+        //adding mapFragment in MainActivity
         fragmentTransaction.replace(R.id.mapContainer, mapFragment, "map");
         searchPanelFragment = new SearchPanelFragment();
+        //adding search panel fragment in MainActivty
         fragmentTransaction.add(R.id.mapContainer, searchPanelFragment, "searchpanel");
         fragmentTransaction.commit();
     }
@@ -69,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements
         this.destLocation = destLocation;
         String str_dest = "destination=" + destLocation.latitude + "," + destLocation.longitude;
         String param = str_source + "&" + str_dest + "&sensor=false";
+        //direction api refrence from https://developers.google.com/maps/documentation/directions/intro
         new GetRouteDetails(this).execute("https://maps.googleapis.com/maps/api/directions/json?" + param);
     }
 
@@ -85,6 +86,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void readySnapshot(boolean status) {
         if (status) {
+            //snapshoot is ready add infofragment in MainActivity
             fragmentTransaction = fragmentManager.beginTransaction();
             infoFragment = new InfoFragment();
             fragmentTransaction.add(R.id.mapContainer, infoFragment, "infopanel");
@@ -106,7 +108,6 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-    @Override
     public void onGetRouteDirectionData(ParentRoute parentRoute) {
         this.parentRoute = parentRoute;
         Route route = parentRoute.getRoutes().get(0);
@@ -117,11 +118,13 @@ public class MainActivity extends AppCompatActivity implements
                 mapFragment.setDestLocation(destLocation, polyPoints);
                 searchPanelFragment.changeFABVisibility();
             } else {
+                //update distance and duration from destination
                 infoFragment.updateNavigationInfo(parentRoute.getRoutes().get(0).getLegs().get(0));
             }
         }
     }
 
+    //decode polyline refrence from http://tecnepa.blogspot.in/2014/05/androiddecodepolystring-str-function-to.html
     private List<LatLng> decodePolyLine(final String poly) {
         int len = poly.length();
         int index = 0;

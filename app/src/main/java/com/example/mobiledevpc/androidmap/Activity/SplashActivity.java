@@ -29,6 +29,7 @@ public class SplashActivity extends AppCompatActivity {
         enablePermissions();
     }
 
+    //check runtime permission
     private void enablePermissions() {
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)

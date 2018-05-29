@@ -64,6 +64,7 @@ public class SearchPanelFragment extends Fragment {
         infoFAB = view.findViewById(R.id.infoFAB);
         sourceEditText.setOnClickListener(v -> {
             try {
+                //call for search location auto search
                 Intent intent = new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_FULLSCREEN).build(getActivity());
                 startActivityForResult(intent, SOURCE_PLACE_AUTOCOMPLETE_REQUEST_CODE);
             } catch (GooglePlayServicesRepairableException e) {
@@ -75,6 +76,7 @@ public class SearchPanelFragment extends Fragment {
 
         destinationEditText.setOnClickListener(v -> {
             try {
+                //call for destination location auto search
                 Intent intent = new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_FULLSCREEN).build(getActivity());
                 startActivityForResult(intent, DESTINATION_PLACE_AUTOCOMPLETE_REQUEST_CODE);
             } catch (GooglePlayServicesRepairableException e) {
@@ -85,20 +87,25 @@ public class SearchPanelFragment extends Fragment {
         });
 
         currentlocationFAB.setOnClickListener(v -> {
+            // request for current location
             onSearchPanelListener.getCurrentLocation();
             sourceEditText.setText("Current Location");
             destinationEditText.requestFocus();
         });
 
         navigationFAB.setOnClickListener(v -> {
+            // start navigation
             onSearchPanelListener.startNavigation();
         });
 
         infoFAB.setOnClickListener(v -> {
+            // add infofragment
             onSearchPanelListener.addInfoFragment();
         });
 
         googlemapFAB.setOnClickListener(v -> {
+            //open current route in google map
+            //google map intent refrence from https://developers.google.com/maps/documentation/urls/android-intents
             String destLoc = destinationEditText.getText().toString().trim();
             if (!sourceEditText.getText().toString().trim().equalsIgnoreCase("Current Location")) {
                 Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
@@ -152,6 +159,7 @@ public class SearchPanelFragment extends Fragment {
         infoFAB.setVisibility(View.VISIBLE);
     }
 
+    //refrence https://developer.android.com/training/basics/fragments/communicating
     public interface OnSearchPanelListener {
         void getCurrentLocation();
         void setSourceLocation(LatLng location);

@@ -25,9 +25,6 @@ public class Leg {
     @SerializedName("start_location")
     @Expose
     private StartLocation startLocation;
-    @SerializedName("steps")
-    @Expose
-    private List<Step> steps = null;
     @SerializedName("traffic_speed_entry")
     @Expose
     private List<Object> trafficSpeedEntry = null;
@@ -81,14 +78,6 @@ public class Leg {
 
     public void setStartLocation(StartLocation startLocation) {
         this.startLocation = startLocation;
-    }
-
-    public List<Step> getSteps() {
-        return steps;
-    }
-
-    public void setSteps(List<Step> steps) {
-        this.steps = steps;
     }
 
     public List<Object> getTrafficSpeedEntry() {

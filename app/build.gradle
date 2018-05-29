@@ -16,6 +16,16 @@ repositories {
 
 
 android {
+    signingConfigs {
+        config {
+            keyAlias 'AndroidMapSwapnil'
+            keyPassword 'Swapnil@555'
+            storeFile file('C:/Users/MobileDevPc/.keystore')
+            storePassword 'Swapnil@123'
+        }
+        config1 {
+        }
+    }
     compileSdkVersion 27
     defaultConfig {
         applicationId "com.example.mobiledevpc.androidmap"

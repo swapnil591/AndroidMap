@@ -1,39 +1,30 @@
 package com.example.mobiledevpc.androidmap.Fragment;
 
-import android.Manifest;
-import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.LinearInterpolator;
 import android.widget.Toast;
 
+import com.example.mobiledevpc.androidmap.Util.AnimateUtil;
 import com.example.mobiledevpc.androidmap.R;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
-import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.JointType;
@@ -59,61 +50,59 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
     private Location currentLocation;
     private LocationManager locationManager;
 
-    private boolean isGPSEnabled;
-    private boolean isNetworkEnabled;
+    private boolean mIsRunning = true;
     private boolean navigationFlag = false;
 
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1;
-    private static final long MIN_TIME_BW_UPDATES = 5000;
+    private static final long MIN_TIME_BW_UPDATES = 10000;
 
     private LatLng sourceLocation;
     private OnMapEventListener onMapEventListener;
     private Marker nav_marker;
+    private Polyline routePolylines;
 
-
+    //check gps status
     private void checkGpsStatus() {
-        LocationManager lm = (LocationManager)getActivity().getSystemService(Context.LOCATION_SERVICE);
-        if(lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+        LocationManager lm = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+        if (lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             getLocationManager();
+            //start listening for location updates
             requestForLocationUpdate();
-        }
-        else
+        } else
             showDialogForEnableGPS();
+
     }
 
-    public  void showDialogForEnableGPS()
-    {
-        final AlertDialog.Builder builder =  new AlertDialog.Builder(getContext());
+    //show gps setting dialog
+    public void showDialogForEnableGPS() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         final String action = Settings.ACTION_LOCATION_SOURCE_SETTINGS;
         final String message = "Do you want open GPS setting?";
 
         builder.setMessage(message)
                 .setPositiveButton("OK",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface d, int id) {
-                                startActivity(new Intent(action));
-                                d.dismiss();
-                            }
+                        (d, id) -> {
+                            startActivity(new Intent(action));
+                            d.dismiss();
                         })
                 .setNegativeButton("Cancel",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface d, int id) {
-                                d.cancel();
-                            }
-                        });
+                        (d, id) -> d.cancel());
         builder.create().show();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        //remove all markers and routes from map
         clearMap();
+        mIsRunning = false;
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        if(navigationFlag)
+        //stop location updation
+        if (navigationFlag)
             locationManager.removeUpdates(this);
     }
 
@@ -141,9 +130,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
     }
 
+    //show current location on map with green drop pin on map
     public LatLng showcurrentLocation() {
+        //check for gps status befor request current location
         checkGpsStatus();
-        requestForLocationUpdate();
+       // requestForLocationUpdate();
         if (currentLocation != null) {
 
             LatLng latlng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
@@ -154,6 +145,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
         return sourceLocation;
     }
 
+    //show markers on map
     private void showMarkerOnMap(LatLng latlng, float hueGreen) {
         mMap.addMarker(new MarkerOptions().position(latlng)
                 .icon(BitmapDescriptorFactory.defaultMarker(hueGreen)));
@@ -164,64 +156,130 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
     public void onLocationChanged(Location location) {
         currentLocation = location;
         LatLng latlng = new LatLng(location.getLatitude(), location.getLongitude());
-        if(navigationFlag) {
+        if (navigationFlag) {
+            //send chenged location toupdate info fragment
             onMapEventListener.locationChanged(location);
         }
-        
-        if(nav_marker!=null)
+        //check if there is previous marker on map and remove it
+        if (nav_marker != null)
             nav_marker.remove();
-
+        //show navigation marker on map
         showNavigationMarker(latlng);
+        //Toast.makeText(getActivity(), location.getProvider()+" latitude-" + latlng.latitude + ", longitude" + latlng.longitude, Toast.LENGTH_SHORT).show();
     }
 
     private void showNavigationMarker(LatLng latlng) {
-         nav_marker = mMap.addMarker(new MarkerOptions().position(latlng)
+        nav_marker = mMap.addMarker(new MarkerOptions().position(latlng)
+                .flat(true)
+                .anchor(0.5f, 0.5f)
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.car)));
+        nav_marker.setRotation((float) getAngle(0));
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latlng, 17));
+        AnimateUtil.animateMarker(nav_marker, latlng); //Animate marker
+
     }
 
+    //get marker rotation
+    private double getAngle(int i) {
+        if ((i + 1) >= routePolylines.getPoints().size()) {
+            throw new RuntimeException("index out of bonds");
+        }
+        LatLng startPoint = routePolylines.getPoints().get(i);
+        LatLng endPoint = routePolylines.getPoints().get(i + 1);
+        return getAngle(startPoint, endPoint);
+    }
+
+    private double getAngle(LatLng startPoint, LatLng endPoint) {
+        double slope = getSlope(startPoint, endPoint);
+        if (slope == Double.MAX_VALUE) {
+            if (endPoint.latitude > startPoint.latitude)
+                return 0;
+            else
+                return 180;
+        }
+        float deltAngle = 0;
+        if ((endPoint.latitude - startPoint.latitude) * slope < 0)
+            deltAngle = 180;
+        double radio = Math.atan(slope);
+        double angle = 180 * (radio / Math.PI) + deltAngle - 90;
+        return angle;
+    }
+
+    private double getSlope(LatLng startPoint, LatLng endPoint) {
+        if (endPoint.longitude == startPoint.longitude) {
+            return Double.MAX_VALUE;
+        }
+        double slope = ((endPoint.latitude - startPoint.latitude) / (endPoint.longitude - startPoint.longitude));
+        return slope;
+    }
+
+
     @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) { }
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+    }
 
     @Override
     public void onProviderEnabled(String provider) {
-        getLocationManager();
+        //getLocationManager();
     }
 
+    //initialise location manager
     private void getLocationManager() {
         locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
-        isGPSEnabled = locationManager
-                .isProviderEnabled(LocationManager.GPS_PROVIDER);
-        isNetworkEnabled = locationManager
-                .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-        if (isGPSEnabled == false && isNetworkEnabled == false) {
-            Toast.makeText(getActivity(), "no gps provider avilable", Toast.LENGTH_SHORT).show();
-        }
     }
 
     @SuppressLint("MissingPermission")
     private void requestForLocationUpdate() {
-        if (isGPSEnabled) {
-            locationManager.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER,
-                    MIN_TIME_BW_UPDATES,
-                    MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-            if (locationManager != null) {
-                currentLocation = locationManager
-                        .getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            }
-        }
+        Location gpscurrentLocation = null;
+        Location networkcurrentLocation = null;
 
-        if (currentLocation == null && isNetworkEnabled) {
+        if (locationManager
+                .isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
             locationManager.requestLocationUpdates(
                     LocationManager.NETWORK_PROVIDER,
                     MIN_TIME_BW_UPDATES,
                     MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-            if (locationManager != null) {
-                currentLocation = locationManager
-                        .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-            }
+            networkcurrentLocation = locationManager
+                    .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
         }
+
+        if (locationManager
+                .isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            locationManager.requestLocationUpdates(
+                    LocationManager.GPS_PROVIDER,
+                    MIN_TIME_BW_UPDATES,
+                    MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
+            gpscurrentLocation = locationManager
+                    .getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        }
+
+        if (gpscurrentLocation != null && networkcurrentLocation != null)
+            currentLocation = getBetterLocation(gpscurrentLocation, networkcurrentLocation);
+        else if (gpscurrentLocation != null) {
+            currentLocation = gpscurrentLocation;
+        } else if (networkcurrentLocation != null) {
+            currentLocation = networkcurrentLocation;
+        } else {
+            Toast.makeText(getActivity(), "no gps provider avilable", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    //check for better location by coparing time and accuracy of location
+    private Location getBetterLocation(Location gpscurrentLocation, Location networkcurrentLocation) {
+        long timeDelta = gpscurrentLocation.getTime() - networkcurrentLocation.getTime();
+        int accuracyDelta = (int) (gpscurrentLocation.getAccuracy() - networkcurrentLocation.getAccuracy());
+        boolean isNewer = timeDelta > 0;
+        boolean isLessAccurate = accuracyDelta > 0;
+        boolean isMoreAccurate = accuracyDelta < 0;
+        boolean isSignificantlyLessAccurate = accuracyDelta > 200;
+        if (isMoreAccurate)
+            return gpscurrentLocation;
+        else if (isNewer && !isLessAccurate)
+            return gpscurrentLocation;
+        else if (isNewer && !isSignificantlyLessAccurate)
+            return gpscurrentLocation;
+        else
+            return networkcurrentLocation;
     }
 
     @Override
@@ -235,6 +293,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
         showMarkerOnMap(sourceLocation, BitmapDescriptorFactory.HUE_GREEN);
     }
 
+    //set destination marker drop pin on map and show polyline path between source and destination
     public void setDestLocation(LatLng destLocation, List<LatLng> polyPoints) {
         clearMap();
         showMarkerOnMap(sourceLocation, BitmapDescriptorFactory.HUE_GREEN);
@@ -246,18 +305,20 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
         polylineOption.endCap(new SquareCap());
         polylineOption.jointType(JointType.ROUND);
         polylineOption.addAll(polyPoints);
-        mMap.addPolyline(polylineOption);
+        routePolylines = mMap.addPolyline(polylineOption);
         mMap.setMinZoomPreference(2.0f);
         mMap.setMaxZoomPreference(17.0f);
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         builder.include(sourceLocation).include(destLocation);
         mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 50));
+
     }
 
     private void clearMap() {
         mMap.clear();
     }
 
+    //cheang map configuration to navigation and start location updation
     public void createNavigationView() {
         mMap.setBuildingsEnabled(true);
         CameraPosition cameraPosition = new CameraPosition.Builder()
@@ -267,7 +328,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
                 .tilt(30)
                 .build();
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-        navigationFlag =true;
+        navigationFlag = true;
         requestForLocationUpdate();
     }
 
@@ -277,6 +338,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
             public OutputStream fileOutputStream;
             public FileOutputStream out;
             Bitmap bitmap;
+
             @Override
             public void onSnapshotReady(Bitmap snapshot) {
                 bitmap = snapshot;
@@ -294,6 +356,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
         mMap.snapshot(callback);
     }
 
+    //refrence https://developer.android.com/training/basics/fragments/communicating
     public interface OnMapEventListener {
         void readySnapshot(boolean status);
         void locationChanged(Location currLocation);
@@ -308,4 +371,5 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
             Toast.makeText(context, "interface not implemented by parent activity ", Toast.LENGTH_SHORT).show();
         }
     }
+
 }

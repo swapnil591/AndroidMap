@@ -2,6 +2,7 @@ package com.example.mobiledevpc.androidmap.Api;
 
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.Toast;
 
 
 import com.example.mobiledevpc.androidmap.Activity.MainActivity;
@@ -61,11 +62,6 @@ public class GetRouteDetails extends AsyncTask<String,Void,String> {
         }catch (Exception e){
 
         }finally {
-//            try {
-//               istream.close();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
             httpURLConnection.disconnect();
         }
 
@@ -76,12 +72,12 @@ public class GetRouteDetails extends AsyncTask<String,Void,String> {
     @Override
     protected void onPostExecute(String o) {
         super.onPostExecute(o);
-
+        //send api response to MainActivty
         Gson gson = new Gson();
         ParentRoute parentRoute = gson.fromJson(o, ParentRoute.class);
         if( parentRoute!=null && parentRoute.getStatus().equalsIgnoreCase("OK"))
             mainActivity.onGetRouteDirectionData(parentRoute);
-        //else
-          //  Toast.makeText(mainActivity, "can't find route", Toast.LENGTH_SHORT).show();
+        else
+            Toast.makeText(mainActivity, "can't find route", Toast.LENGTH_SHORT).show();
     }
 }
